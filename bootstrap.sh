@@ -6,6 +6,10 @@ branch="${AGENT_SETUP_BRANCH:-main}"
 archive_url="${AGENT_SETUP_ARCHIVE_URL:-https://github.com/${repository}/archive/refs/heads/${branch}.tar.gz}"
 temp_root="$(mktemp -d 2>/dev/null || mktemp -d -t agent-quick-setup)"
 
+if ( : </dev/tty ) 2>/dev/null; then
+  exec 3</dev/tty
+fi
+
 cleanup() {
   rm -rf "$temp_root"
 }
@@ -35,4 +39,11 @@ if [ "${AGENT_SETUP_DOWNLOAD_ONLY:-0}" = "1" ]; then
   exit 0
 fi
 
-sh "$project_root/install.sh" "$@"
+if [ -t 3 ] 2>/dev/null; then
+  sh "$project_root/install.sh" "$@" <&3
+elif [ -t 0 ]; then
+  sh "$project_root/install.sh" "$@"
+else
+  echo "No interactive terminal is available. Run with: bash <(curl -fsSL https://raw.githubusercontent.com/${repository}/${branch}/bootstrap.sh)" >&2
+  exit 1
+fi

@@ -15,7 +15,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod 'h
 macOS / Linux：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/bootstrap.sh | bash
+bash <(curl -fsSL https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/bootstrap.sh)
 ```
 
 如果更习惯 `wget`：

@@ -17,3 +17,5 @@
 - 2026-07-18: User report reproduced three design defects: `subprocess` uses a non-resolved `powershell.exe` shell, Python PATH is only refreshed immediately after installation, and errors are re-thrown at three layers.
 - Fixed Windows PowerShell command execution policy, PATH refresh before/after dependency and Agent installation, concise error handling, and Pi package migration to `@earendil-works/pi-coding-agent`.
 - Full native Windows Pi install completed successfully; `pi --version` reports 0.80.10 and npm confirms `@earendil-works/pi-coding-agent@0.80.10`.
+- 2026-07-18: Ubuntu 24 VPS report shows `curl | bash` consumes stdin, causing Python `input()` to raise EOF at the Agent selection prompt.
+- POSIX bootstrap now opens `/dev/tty` on fd 3 and forwards it to `install.sh`; README recommends `bash <(curl ...)`, and CI includes a util-linux `script` pseudo-terminal regression test.

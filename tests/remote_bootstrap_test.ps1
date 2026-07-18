@@ -31,6 +31,9 @@ if ($psContent -notmatch "Expand-Archive") {
 if ($shContent -notmatch "mktemp" -or $shContent -notmatch "trap") {
     Write-Error "bootstrap.sh does not use and clean a temporary directory"
 }
+if ($shContent -notmatch 'exec\s+3</dev/tty' -or $shContent -notmatch 'install\.sh.*<&3') {
+    Write-Error "bootstrap.sh does not preserve /dev/tty for interactive input when its source is piped"
+}
 if ($psInstallContent -notmatch '\$PSScriptRoot') {
     Write-Error "install.ps1 does not anchor module execution to its own directory"
 }
