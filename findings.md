@@ -37,3 +37,4 @@
 - WSL verification must use an interactive shell (`bash -ic`/`zsh -ic`); non-interactive `bash -lc` may return before loading `.bashrc`.
 - macOS Bash login shells conventionally use `.bash_profile`; WSL shell detection now supports Bash and Zsh with a Bash fallback.
 - Native Ubuntu flow uses the same POSIX persistence path as macOS/Linux; an integration test now verifies `.bashrc` loading in a real interactive Bash subprocess rather than only mocking `CommandRunner`.
+- PATH configuration is now an Agent-wide post-install concern: npm-based tools resolve the active global prefix instead of assuming Claude's `$HOME/.local/bin`, while Python/native tools retain user-local fallbacks.
