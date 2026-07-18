@@ -21,7 +21,7 @@ class AgentSpec:
     docs_url: str
     notes: str = ""
     package: Optional[str] = None
-    user_bin_paths: List[str] = field(default_factory=list)
+    user_bin_paths: List[str] = field(default_factory=lambda: ["$HOME/.local/bin"])
 
 
 @dataclass
