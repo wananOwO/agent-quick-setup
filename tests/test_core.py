@@ -1,7 +1,10 @@
+import os
 import unittest
 from contextlib import redirect_stdout
 from dataclasses import replace
 from io import StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from agent_setup.commands import CommandRunner
@@ -32,6 +35,92 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(agent.package, "@earendil-works/pi-coding-agent")
         self.assertIn("@earendil-works/pi-coding-agent", agent.install_commands["windows"][0])
         self.assertIn("npm uninstall --global @mariozechner/pi-coding-agent", agent.install_commands["windows"][0])
+
+    def test_claude_declares_user_bin_path(self):
+        agent = next(item for item in get_agents() if item.key == "claude-code")
+        self.assertIn("$HOME/.local/bin", agent.user_bin_paths)
+
+    def test_persist_user_path_updates_bashrc_idempotently_and_process_path(self):
+        with TemporaryDirectory() as home:
+            with patch.dict("os.environ", {"HOME": home, "PATH": ""}, clear=False):
+                runner = CommandRunner(Runtime("linux", "bash"))
+
+                self.assertTrue(runner.persist_user_path("$HOME/.local/bin"))
+                config = Path(home) / ".bashrc"
+                line = 'export PATH="$HOME/.local/bin:$PATH"'
+                self.assertIn(line, config.read_text())
+                self.assertIn(str(Path(home) / ".local" / "bin"), os.environ["PATH"])
+
+                self.assertTrue(runner.persist_user_path("$HOME/.local/bin"))
+                self.assertEqual(config.read_text().count(line), 1)
+
+    def test_persist_user_path_uses_zshrc_for_zsh(self):
+        with TemporaryDirectory() as home:
+            with patch.dict("os.environ", {"HOME": home, "PATH": ""}, clear=False):
+                runner = CommandRunner(Runtime("macos", "/bin/zsh"))
+                self.assertTrue(runner.persist_user_path("$HOME/.local/bin"))
+                self.assertTrue((Path(home) / ".zshrc").exists())
+                self.assertFalse((Path(home) / ".bashrc").exists())
+
+    def test_wsl_path_persistence_runs_inside_wsl_without_host_file_write(self):
+        with TemporaryDirectory() as home:
+            with patch.dict("os.environ", {"HOME": home}, clear=False):
+                runner = CommandRunner(Runtime("windows", "bash", wsl=True, distro="Ubuntu"))
+                with patch.object(runner, "run", return_value=0) as run:
+                    self.assertTrue(runner.persist_user_path("$HOME/.local/bin"))
+                self.assertFalse((Path(home) / ".bashrc").exists())
+                command = run.call_args.args[0]
+                self.assertIn(".bashrc", command)
+                self.assertIn("export PATH=", command)
+
+    def test_install_persists_agent_path_before_verification(self):
+        class PathRunner(CommandRunner):
+            def __init__(self):
+                super().__init__(Runtime("linux", "bash"))
+                self.persisted = []
+
+            def exists(self, command):
+                return command == "claude"
+
+            def run(self, command, check=False):
+                return 0
+
+            def persist_user_path(self, path):
+                self.persisted.append(path)
+                return True
+
+        agent = next(item for item in get_agents() if item.key == "claude-code")
+        output = StringIO()
+        runner = PathRunner()
+        with redirect_stdout(output):
+            result = install_agent(agent, runner, input_fn=lambda _prompt: "y")
+
+        self.assertTrue(result)
+        self.assertEqual(["$HOME/.local/bin"], runner.persisted)
+        self.assertIn("PATH", output.getvalue())
+
+    def test_path_persistence_failure_does_not_mark_completed_install_as_failed(self):
+        class UnpersistableRunner(CommandRunner):
+            def __init__(self):
+                super().__init__(Runtime("linux", "bash"))
+
+            def exists(self, command):
+                return False
+
+            def run(self, command, check=False):
+                return 0
+
+            def persist_user_path(self, path):
+                return False
+
+        agent = next(item for item in get_agents() if item.key == "claude-code")
+        output = StringIO()
+        with redirect_stdout(output):
+            result = install_agent(agent, UnpersistableRunner(), input_fn=lambda _prompt: "y")
+
+        self.assertTrue(result)
+        self.assertIn("could not persist PATH", output.getvalue())
+        self.assertIn("could not verify", output.getvalue())
 
     def test_wsl_uses_linux_install_channel(self):
         agent = next(agent for agent in get_agents() if agent.key == "codex")

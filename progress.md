@@ -19,3 +19,4 @@
 - Full native Windows Pi install completed successfully; `pi --version` reports 0.80.10 and npm confirms `@earendil-works/pi-coding-agent@0.80.10`.
 - 2026-07-18: Ubuntu 24 VPS report shows `curl | bash` consumes stdin, causing Python `input()` to raise EOF at the Agent selection prompt.
 - POSIX bootstrap now opens `/dev/tty` on fd 3 and forwards it to `install.sh`; README recommends `bash <(curl ...)`, and CI includes a util-linux `script` pseudo-terminal regression test.
+- 2026-07-18: Added `AgentSpec.user_bin_paths` and automatic PATH persistence. Claude Code declares `$HOME/.local/bin`; POSIX writes the shell rc file idempotently and refreshes the current process, WSL writes only inside the selected distro, and native Windows updates the HKCU user PATH. Installation output previews PATH changes and warns (without failing Agent installation) if persistence is unavailable.

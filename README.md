@@ -105,3 +105,17 @@ irm https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/bootstrap.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/bootstrap.sh | AGENT_SETUP_DOWNLOAD_ONLY=1 bash
 ```
+
+## PATH configuration
+
+For agents that install into a user-level bin directory (such as Claude Code),
+the installer persists the directory automatically after installation:
+
+- Linux/bash uses `~/.bashrc`; zsh uses `~/.zshrc`; other shells use `~/.profile`.
+- macOS follows the detected shell configuration.
+- Native Windows updates the user PATH; WSL writes only inside the selected WSL distribution.
+- Writes are idempotent, and the current installer process refreshes PATH immediately.
+
+A child process cannot modify the environment of the already-open parent shell.
+Open a new terminal after installation, or run `source ~/.bashrc` (or
+`source ~/.zshrc` for zsh).

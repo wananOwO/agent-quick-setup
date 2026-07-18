@@ -1,7 +1,9 @@
 import os
+import shlex
 import shutil
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, List, Optional
 
 from .models import Runtime
@@ -75,6 +77,111 @@ class CommandRunner:
                 seen.add(normalized)
                 unique.append(entry)
         os.environ["PATH"] = os.pathsep.join(unique)
+
+    def _shell_config_name(self) -> str:
+        shell = (self.runtime.shell or "").lower()
+        if "zsh" in shell:
+            return ".zshrc"
+        if "bash" in shell:
+            return ".bashrc"
+        return ".profile"
+
+    @staticmethod
+    def _home_directory() -> Path:
+        home = os.environ.get("HOME") or os.environ.get("USERPROFILE")
+        return Path(home).expanduser() if home else Path.home()
+
+    def _path_expression(self, path: str) -> str:
+        if path == "~":
+            return "$HOME"
+        if path.startswith("~/"):
+            return "$HOME/" + path[2:]
+        if path == "$HOME":
+            return "$HOME"
+        if path.startswith("$HOME/"):
+            return path
+        if path.startswith("${HOME}/"):
+            return "$HOME/" + path[7:]
+        return path
+
+    def _path_line(self, path: str) -> str:
+        expression = self._path_expression(path).replace("\\", "\\\\").replace('"', '\\"')
+        return f'export PATH="{expression}:$PATH"'
+
+    def _expanded_path(self, path: str) -> str:
+        home = str(self._home_directory())
+        expanded = path.replace("${HOME}", home).replace("$HOME", home)
+        return os.path.abspath(os.path.expanduser(os.path.expandvars(expanded)))
+
+    def _prepend_process_path(self, path: str) -> None:
+        current = os.environ.get("PATH", "")
+        entries = [entry for entry in current.split(os.pathsep) if entry]
+        normalized = os.path.normcase(os.path.normpath(path))
+        if not any(os.path.normcase(os.path.normpath(entry)) == normalized for entry in entries):
+            os.environ["PATH"] = os.pathsep.join([path] + entries)
+
+    def path_config_description(self, path: str) -> str:
+        if self.runtime.wsl:
+            return f"WSL {self._shell_config_name()} ({path})"
+        if self.runtime.os_name == "windows":
+            return f"Windows user PATH ({self._expanded_path(path)})"
+        return f"{self._home_directory() / self._shell_config_name()} ({path})"
+
+    def persist_user_path(self, path: str) -> bool:
+        """Persist a user-level PATH entry and update this process when possible.
+
+        WSL targets are always modified inside the selected distribution. A
+        failed persistence operation returns False so callers can warn without
+        marking an otherwise successful Agent installation as failed.
+        """
+        line = self._path_line(path)
+        if self.runtime.wsl:
+            config = f"$HOME/{self._shell_config_name()}"
+            quoted_line = shlex.quote(line)
+            command = (
+                f"touch \"{config}\"; "
+                f"grep -Fqx {quoted_line} \"{config}\" || "
+                f"printf '%s\\n' {quoted_line} >> \"{config}\""
+            )
+            try:
+                return self.run(command) == 0
+            except (OSError, subprocess.SubprocessError):
+                return False
+
+        expanded = self._expanded_path(path)
+        if self.runtime.os_name == "windows":
+            try:
+                import winreg
+
+                key_path = r"Environment"
+                with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+                    try:
+                        existing, _ = winreg.QueryValueEx(key, "Path")
+                    except OSError:
+                        existing = ""
+                    entries = [entry for entry in existing.split(os.pathsep) if entry]
+                    normalized = os.path.normcase(os.path.normpath(expanded))
+                    if not any(os.path.normcase(os.path.normpath(entry)) == normalized for entry in entries):
+                        entries.append(expanded)
+                        winreg.SetValueEx(key, "Path", 0, winreg.REG_EXPAND_SZ, os.pathsep.join(entries))
+                self._prepend_process_path(expanded)
+                return True
+            except (ImportError, OSError):
+                return False
+
+        config = self._home_directory() / self._shell_config_name()
+        try:
+            config.parent.mkdir(parents=True, exist_ok=True)
+            content = config.read_text(encoding="utf-8") if config.exists() else ""
+            if line not in content.splitlines():
+                with config.open("a", encoding="utf-8") as handle:
+                    if content and not content.endswith("\n"):
+                        handle.write("\n")
+                    handle.write(line + "\n")
+            self._prepend_process_path(expanded)
+            return True
+        except OSError:
+            return False
 
     def version(self, command: str) -> Optional[str]:
         try:

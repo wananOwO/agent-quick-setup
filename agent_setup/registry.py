@@ -20,6 +20,7 @@ AGENTS = [
         },
         docs_url="https://code.claude.com/docs/en/setup",
         notes="Native installer is preferred; npm fallback is available in the official docs.",
+        user_bin_paths=["$HOME/.local/bin"],
     ),
     AgentSpec(
         key="codex",

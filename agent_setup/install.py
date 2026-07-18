@@ -51,6 +51,10 @@ def install_agent(agent: AgentSpec, runner: CommandRunner, input_fn=input) -> bo
     command = agent.install_commands[runner.runtime.platform_key][0]
     print(f"Install {agent.name} with:")
     print(f"  {runner.display(command)}")
+    if agent.user_bin_paths:
+        print("PATH entries to configure after installation:")
+        for path in agent.user_bin_paths:
+            print(f"  - {runner.path_config_description(path)}")
     if not confirm("Continue?", input_fn):
         print("Cancelled.")
         return False
@@ -59,8 +63,16 @@ def install_agent(agent: AgentSpec, runner: CommandRunner, input_fn=input) -> bo
     if runner.dry_run:
         print(f"Dry run complete; `{agent.command}` was not installed or verified.")
         return True
+    path_persistence_failed = False
+    for path in agent.user_bin_paths:
+        if not runner.persist_user_path(path):
+            path_persistence_failed = True
+            print(f"Warning: could not persist PATH entry {path}. Add it manually before using {agent.command}.")
     runner.refresh_environment()
     if not runner.exists(agent.command):
+        if path_persistence_failed:
+            print(f"{agent.name} install command completed, but could not verify `{agent.command}` until PATH is fixed.")
+            return True
         print(f"{agent.name} could not be verified because `{agent.command}` is not on PATH.")
         return False
     print(f"{agent.name} installed. Verify with `{agent.command}`.")

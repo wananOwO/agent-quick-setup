@@ -27,3 +27,10 @@
 - `AgentSpec` 数据对象集中描述 Agent，`CommandRunner` 隔离 Windows PowerShell/WSL/Unix 执行，新增 Agent 只需注册适配器。
 - 依赖检查支持命令别名（Windows 的 `python`/`python3`、`pip`/`pip3`），包管理器映射集中维护。
 - 安装命令在执行前始终打印并确认；`--dry-run` 可离线审阅，`--yes` 是显式自动确认开关。
+
+## PATH persistence findings
+
+- Claude Code's native installer places its executable in `$HOME/.local/bin` on POSIX systems; this directory must be persisted before verification.
+- Persistence is shell-specific and idempotent: bash `.bashrc`, zsh `.zshrc`, fallback `.profile`.
+- WSL persistence must execute within `wsl.exe`; writing the Windows host's `$HOME` would leave the selected Linux target broken.
+- A child installer process cannot update its parent's environment, so the installer updates its own PATH and documents reopening the terminal.
