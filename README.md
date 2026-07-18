@@ -6,10 +6,10 @@
 
 ## 一键启动
 
-Windows PowerShell：
+Windows CMD 或 PowerShell：
 
 ```powershell
-irm https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/bootstrap.ps1 | iex
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod 'https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/bootstrap.ps1' | Invoke-Expression"
 ```
 
 macOS / Linux：

@@ -13,6 +13,7 @@ $psContent = Get-Content -Raw -LiteralPath $psBootstrap
 $shContent = Get-Content -Raw -LiteralPath $shBootstrap
 $psInstallContent = Get-Content -Raw -LiteralPath (Join-Path $root "install.ps1")
 $shInstallContent = Get-Content -Raw -LiteralPath (Join-Path $root "install.sh")
+$readmeContent = Get-Content -Raw -LiteralPath (Join-Path $root "README.md")
 $expectedRepo = "wananOwO/agent-quick-setup"
 
 if ($psContent -notmatch [regex]::Escape($expectedRepo)) {
@@ -35,6 +36,9 @@ if ($psInstallContent -notmatch '\$PSScriptRoot') {
 }
 if ($shInstallContent -notmatch 'dirname.*\$0') {
     Write-Error "install.sh does not anchor module execution to its own directory"
+}
+if ($readmeContent -notmatch 'powershell(?:\.exe)?\s+-NoProfile\s+-ExecutionPolicy\s+Bypass\s+-Command\s+.*(?:Invoke-RestMethod|irm)') {
+    Write-Error "README Windows one-liner is not compatible with both CMD and PowerShell"
 }
 
 Write-Output "Remote bootstrap checks passed."
