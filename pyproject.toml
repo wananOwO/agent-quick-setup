@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-quick-setup"
+version = "0.1.0"
+description = "Interactive cross-platform installer for popular AI agent CLIs"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+agent-setup = "agent_setup.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["agent_setup*"]
