@@ -108,8 +108,9 @@ curl -fsSL https://raw.githubusercontent.com/wananOwO/agent-quick-setup/main/boo
 
 ## PATH configuration
 
-For agents that install into a user-level bin directory (such as Claude Code),
-the installer persists the directory automatically after installation:
+Every Agent installed by this project gets an automatic PATH configuration step.
+The installer resolves each tool's actual user-level bin directory before
+verification (including the npm global prefix for Node-based Agents):
 
 - Linux/bash uses `~/.bashrc`; zsh uses `~/.zshrc`; other shells use `~/.profile`.
 - macOS follows the detected shell configuration (Bash uses `~/.bash_profile`).
