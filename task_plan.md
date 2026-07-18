@@ -15,6 +15,7 @@
 - [completed] Phase 7: Preserve an interactive terminal when the POSIX bootstrap is streamed through a pipe, add a pseudo-terminal regression test, and update the recommended command.
 - [completed] Phase 8: Persist Agent user-level PATH entries automatically, including POSIX shell files, native Windows user PATH, and WSL-local configuration.
 - [completed] Phase 9: Add and run a native Linux (Ubuntu-compatible) PATH persistence regression test covering a real interactive bash subprocess.
+- [completed] Phase 10: Apply automatic PATH resolution and persistence to every registered Agent, including npm global bin directories.
 
 ## 全局约束
 
