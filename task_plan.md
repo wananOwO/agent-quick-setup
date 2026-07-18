@@ -14,6 +14,7 @@
 - [completed] Phase 6: Fix Windows command execution, persistent Python discovery, installed-agent verification, duplicate stack traces, and the upstream Pi package migration reported from the public bootstrap.
 - [completed] Phase 7: Preserve an interactive terminal when the POSIX bootstrap is streamed through a pipe, add a pseudo-terminal regression test, and update the recommended command.
 - [completed] Phase 8: Persist Agent user-level PATH entries automatically, including POSIX shell files, native Windows user PATH, and WSL-local configuration.
+- [completed] Phase 9: Add and run a native Linux (Ubuntu-compatible) PATH persistence regression test covering a real interactive bash subprocess.
 
 ## 全局约束
 
