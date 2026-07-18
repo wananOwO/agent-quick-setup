@@ -118,6 +118,36 @@ class CommandRunner:
         expanded = path.replace("${HOME}", home).replace("$HOME", home)
         return os.path.abspath(os.path.expanduser(os.path.expandvars(expanded)))
 
+    def resolve_path_entry(self, path: str) -> str:
+        """Resolve installer path placeholders to concrete user bin directories."""
+        if path != "$NPM_GLOBAL_BIN":
+            return path
+        fallback = "$HOME/.npm-global/bin"
+        if self.dry_run:
+            return fallback
+        try:
+            if self.runtime.wsl:
+                args = ["wsl.exe"] + (["-d", self.runtime.distro] if self.runtime.distro else []) + ["--", "bash", "-lc", "npm prefix --global"]
+                result = subprocess.run(args, capture_output=True, text=True, timeout=10)
+            elif self.runtime.os_name == "windows":
+                powershell = shutil.which("powershell.exe")
+                if powershell:
+                    args = [powershell, "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "npm prefix --global"]
+                    result = subprocess.run(args, capture_output=True, text=True, timeout=10)
+                else:
+                    result = subprocess.run(["npm", "prefix", "--global"], capture_output=True, text=True, timeout=10)
+            else:
+                result = subprocess.run(["npm", "prefix", "--global"], capture_output=True, text=True, timeout=10)
+            prefix = (result.stdout or "").strip().splitlines()
+            prefix = prefix[0].strip() if prefix else ""
+            if not prefix:
+                return fallback
+            if self.runtime.os_name == "windows" and not self.runtime.wsl:
+                return prefix
+            return prefix.rstrip("/") + "/bin"
+        except (OSError, subprocess.SubprocessError):
+            return fallback
+
     def _prepend_process_path(self, path: str) -> None:
         current = os.environ.get("PATH", "")
         entries = [entry for entry in current.split(os.pathsep) if entry]
