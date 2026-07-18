@@ -5,6 +5,9 @@ NODE = Dependency("Node.js/npm", ["node", "npm"], "Node.js runtime and npm packa
 PYTHON = Dependency("Python/pip", ["python3", "pip3"], "Python 3 runtime and pip")
 GIT = Dependency("Git", ["git"], "Git version control")
 
+NODE_USER_PATHS = ["$NPM_GLOBAL_BIN", "$HOME/.local/bin"]
+PYTHON_USER_PATHS = ["$HOME/.local/bin"]
+
 
 AGENTS = [
     AgentSpec(
@@ -35,6 +38,7 @@ AGENTS = [
         },
         docs_url="https://github.com/openai/codex",
         package="@openai/codex",
+        user_bin_paths=NODE_USER_PATHS,
     ),
     AgentSpec(
         key="opencode",
@@ -49,6 +53,7 @@ AGENTS = [
         },
         docs_url="https://opencode.ai/docs/",
         package="opencode-ai",
+        user_bin_paths=NODE_USER_PATHS,
     ),
     AgentSpec(
         key="openclaw",
@@ -64,6 +69,7 @@ AGENTS = [
         docs_url="https://github.com/openclaw/openclaw",
         notes="The project may require Node.js 22+; the adapter checks the installed runtime before running npm.",
         package="openclaw",
+        user_bin_paths=NODE_USER_PATHS,
     ),
     AgentSpec(
         key="hermes",
@@ -78,6 +84,7 @@ AGENTS = [
         },
         docs_url="https://github.com/NousResearch/hermes-agent",
         notes="Python 3.11+ is recommended; installing from the repository with its setup script is an alternative.",
+        user_bin_paths=PYTHON_USER_PATHS,
     ),
     AgentSpec(
         key="pi",
@@ -93,6 +100,7 @@ AGENTS = [
         docs_url="https://github.com/earendil-works/pi",
         notes="The current package requires Node.js 22.19 or newer.",
         package="@earendil-works/pi-coding-agent",
+        user_bin_paths=NODE_USER_PATHS,
     ),
 ]
 
