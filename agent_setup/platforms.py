@@ -31,6 +31,17 @@ def first_wsl_distro() -> Optional[str]:
         return None
 
 
+def wsl_user_shell(distro: Optional[str]) -> str:
+    """Return the selected WSL user's shell basename, with a bash fallback."""
+    args = ["wsl.exe"] + (["-d", distro] if distro else []) + ["--", "bash", "-lc", "getent passwd \"$USER\" | cut -d: -f7"]
+    try:
+        result = subprocess.run(args, capture_output=True, text=True, timeout=10)
+        shell = (result.stdout or "").strip().rsplit("/", 1)[-1]
+        return shell if shell in {"bash", "zsh"} else "bash"
+    except (OSError, subprocess.SubprocessError):
+        return "bash"
+
+
 def choose_windows_target(input_fn=input, output_fn=print) -> Runtime:
     runtime = detect_runtime()
     if runtime.os_name != "windows" or not wsl_available():
@@ -41,7 +52,7 @@ def choose_windows_target(input_fn=input, output_fn=print) -> Runtime:
     output_fn(f"  2) WSL{f' ({distro})' if distro else ''}")
     choice = input_fn("Choice [1]: ").strip() or "1"
     if choice == "2" and distro:
-        return Runtime("windows", "bash", wsl=True, distro=distro)
+        return Runtime("windows", wsl_user_shell(distro), wsl=True, distro=distro)
     if choice == "2":
         output_fn("No WSL distribution found; using native PowerShell.")
     return runtime

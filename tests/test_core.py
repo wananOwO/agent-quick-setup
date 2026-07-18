@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 from contextlib import redirect_stdout
 from dataclasses import replace
@@ -12,7 +13,7 @@ from agent_setup.cli import main
 from agent_setup.dependencies import dependency_install_command
 from agent_setup.install import install_agent
 from agent_setup.models import Runtime
-from agent_setup.platforms import detect_runtime
+from agent_setup.platforms import detect_runtime, wsl_user_shell
 from agent_setup.registry import get_agents
 
 
@@ -62,6 +63,14 @@ class CoreTests(unittest.TestCase):
                 self.assertTrue((Path(home) / ".zshrc").exists())
                 self.assertFalse((Path(home) / ".bashrc").exists())
 
+    def test_persist_user_path_warns_cleanly_for_non_utf8_shell_file(self):
+        with TemporaryDirectory() as home:
+            config = Path(home) / ".bashrc"
+            config.write_bytes(b"export PATH=\xff\n")
+            with patch.dict("os.environ", {"HOME": home, "PATH": ""}, clear=False):
+                runner = CommandRunner(Runtime("linux", "bash"))
+                self.assertFalse(runner.persist_user_path("$HOME/.local/bin"))
+
     def test_wsl_path_persistence_runs_inside_wsl_without_host_file_write(self):
         with TemporaryDirectory() as home:
             with patch.dict("os.environ", {"HOME": home}, clear=False):
@@ -72,6 +81,67 @@ class CoreTests(unittest.TestCase):
                 command = run.call_args.args[0]
                 self.assertIn(".bashrc", command)
                 self.assertIn("export PATH=", command)
+
+    @patch("agent_setup.commands.subprocess.run")
+    def test_wsl_exists_uses_interactive_shell_for_user_path(self, run):
+        run.return_value.returncode = 0
+        runner = CommandRunner(Runtime("windows", "bash", wsl=True, distro="Ubuntu"))
+
+        self.assertTrue(runner.exists("claude"))
+        args = run.call_args.args[0]
+        self.assertIn("-ic", args)
+
+    def test_macos_bash_uses_login_profile(self):
+        runner = CommandRunner(Runtime("macos", "/bin/bash"))
+        self.assertEqual(runner._shell_config_name(), ".bash_profile")
+
+    @patch("agent_setup.platforms.subprocess.run")
+    def test_wsl_user_shell_detects_zsh(self, run):
+        run.return_value.stdout = "/bin/zsh\n"
+        self.assertEqual(wsl_user_shell("Ubuntu"), "zsh")
+
+    def test_windows_user_path_persistence_preserves_and_deduplicates_registry_path(self):
+        class FakeKey:
+            values = {"Path": ("/existing", 2)}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def QueryValueEx(self, _key, name):
+                return self.values[name]
+
+            def SetValueEx(self, _key, name, _reserved, value_type, value):
+                self.values[name] = (value, value_type)
+
+        class FakeWinreg:
+            HKEY_CURRENT_USER = object()
+            REG_EXPAND_SZ = 2
+            key = FakeKey()
+
+            @classmethod
+            def CreateKey(cls, _hive, _path):
+                return cls.key
+
+            @classmethod
+            def QueryValueEx(cls, key, name):
+                return key.QueryValueEx(key, name)
+
+            @classmethod
+            def SetValueEx(cls, key, name, reserved, value_type, value):
+                return key.SetValueEx(key, name, reserved, value_type, value)
+
+        with TemporaryDirectory() as home:
+            with patch.dict("os.environ", {"HOME": home, "USERPROFILE": home, "PATH": ""}, clear=False):
+                with patch.dict(sys.modules, {"winreg": FakeWinreg}):
+                    runner = CommandRunner(Runtime("windows", "powershell"))
+                    self.assertTrue(runner.persist_user_path("$HOME/.local/bin"))
+                    self.assertTrue(runner.persist_user_path("$HOME/.local/bin"))
+
+        persisted = FakeWinreg.key.values["Path"][0].split(os.pathsep)
+        self.assertEqual(["/existing", os.path.join(home, ".local", "bin")], persisted)
 
     def test_install_persists_agent_path_before_verification(self):
         class PathRunner(CommandRunner):

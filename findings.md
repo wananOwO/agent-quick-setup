@@ -34,3 +34,5 @@
 - Persistence is shell-specific and idempotent: bash `.bashrc`, zsh `.zshrc`, fallback `.profile`.
 - WSL persistence must execute within `wsl.exe`; writing the Windows host's `$HOME` would leave the selected Linux target broken.
 - A child installer process cannot update its parent's environment, so the installer updates its own PATH and documents reopening the terminal.
+- WSL verification must use an interactive shell (`bash -ic`/`zsh -ic`); non-interactive `bash -lc` may return before loading `.bashrc`.
+- macOS Bash login shells conventionally use `.bash_profile`; WSL shell detection now supports Bash and Zsh with a Bash fallback.

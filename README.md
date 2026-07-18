@@ -112,8 +112,8 @@ For agents that install into a user-level bin directory (such as Claude Code),
 the installer persists the directory automatically after installation:
 
 - Linux/bash uses `~/.bashrc`; zsh uses `~/.zshrc`; other shells use `~/.profile`.
-- macOS follows the detected shell configuration.
-- Native Windows updates the user PATH; WSL writes only inside the selected WSL distribution.
+- macOS follows the detected shell configuration (Bash uses `~/.bash_profile`).
+- Native Windows updates the user PATH; WSL detects the user's Bash/Zsh shell and writes only inside the selected distribution.
 - Writes are idempotent, and the current installer process refreshes PATH immediately.
 
 A child process cannot modify the environment of the already-open parent shell.

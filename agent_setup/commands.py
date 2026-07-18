@@ -26,7 +26,10 @@ class CommandRunner:
             command = aliases.get(command, command)
         probe = command
         if self.runtime.wsl:
-            args = ["wsl.exe"] + (["-d", self.runtime.distro] if self.runtime.distro else []) + ["--", "bash", "-lc", f"command -v {command}"]
+            shell = (self.runtime.shell or "bash").rsplit("/", 1)[-1]
+            if shell not in {"bash", "zsh"}:
+                shell = "bash"
+            args = ["wsl.exe"] + (["-d", self.runtime.distro] if self.runtime.distro else []) + ["--", shell, "-ic", f"command -v {command}"]
             return subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
         return shutil.which(probe) is not None
 
@@ -80,6 +83,8 @@ class CommandRunner:
 
     def _shell_config_name(self) -> str:
         shell = (self.runtime.shell or "").lower()
+        if self.runtime.os_name == "macos" and "bash" in shell:
+            return ".bash_profile"
         if "zsh" in shell:
             return ".zshrc"
         if "bash" in shell:
@@ -180,7 +185,7 @@ class CommandRunner:
                     handle.write(line + "\n")
             self._prepend_process_path(expanded)
             return True
-        except OSError:
+        except (OSError, UnicodeError):
             return False
 
     def version(self, command: str) -> Optional[str]:
