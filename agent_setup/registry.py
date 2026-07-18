@@ -85,12 +85,13 @@ AGENTS = [
         command="pi",
         dependencies=[NODE],
         install_commands={
-            "windows": ["npm install --global @mariozechner/pi-coding-agent"],
-            "macos": ["npm install --global @mariozechner/pi-coding-agent"],
-            "linux": ["npm install --global @mariozechner/pi-coding-agent"],
+            "windows": ["npm uninstall --global @mariozechner/pi-coding-agent; npm install --global @earendil-works/pi-coding-agent"],
+            "macos": ["npm uninstall --global @mariozechner/pi-coding-agent; npm install --global @earendil-works/pi-coding-agent"],
+            "linux": ["npm uninstall --global @mariozechner/pi-coding-agent; npm install --global @earendil-works/pi-coding-agent"],
         },
-        docs_url="https://github.com/badlogic/pi-mono",
-        package="@mariozechner/pi-coding-agent",
+        docs_url="https://github.com/earendil-works/pi",
+        notes="The current package requires Node.js 22.19 or newer.",
+        package="@earendil-works/pi-coding-agent",
     ),
 ]
 

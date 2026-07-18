@@ -41,4 +41,25 @@ if ($readmeContent -notmatch 'powershell(?:\.exe)?\s+-NoProfile\s+-ExecutionPoli
     Write-Error "README Windows one-liner is not compatible with both CMD and PowerShell"
 }
 
+try {
+    $env:AGENT_SETUP_ARCHIVE_URL = "not-a-valid-uri"
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = "powershell.exe"
+    $startInfo.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$psBootstrap`""
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $process = [System.Diagnostics.Process]::Start($startInfo)
+    $failureOutput = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+    if ($failureOutput -notmatch "Agent Quick Setup failed:") {
+        Write-Error "bootstrap.ps1 does not provide a concise top-level failure message; output was: $failureOutput"
+    }
+    if ($failureOutput -match "CategoryInfo|FullyQualifiedErrorId") {
+        Write-Error "bootstrap.ps1 leaks a PowerShell stack trace; output was: $failureOutput"
+    }
+} finally {
+    Remove-Item Env:AGENT_SETUP_ARCHIVE_URL -ErrorAction SilentlyContinue
+}
+
 Write-Output "Remote bootstrap checks passed."

@@ -34,7 +34,7 @@ def choose_agents(agents, input_fn=input) -> List:
     return selected
 
 
-def main(argv=None) -> int:
+def _main(argv=None) -> int:
     args = parse_args(argv)
     agents = get_agents()
     if args.list:
@@ -57,6 +57,17 @@ def main(argv=None) -> int:
     input_fn = (lambda _prompt: "y") if args.yes else builtins.input
     success = all(install_agent(agent, runner, input_fn=input_fn) for agent in selected)
     return 0 if success else 1
+
+
+def main(argv=None) -> int:
+    try:
+        return _main(argv)
+    except KeyboardInterrupt:
+        print("\nInstallation cancelled.", file=sys.stderr)
+        return 130
+    except Exception as error:
+        print(f"Agent Quick Setup failed: {error}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

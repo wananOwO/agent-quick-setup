@@ -11,7 +11,7 @@
 | OpenCode | `npm install --global opencode-ai`；官方脚本/ Homebrew 亦可能可用 | Node.js/npm；Windows 支持需按 release 矩阵复核 |
 | OpenClaw | 官网脚本或 `npm install --global openclaw@latest` | Node/npm，近期版本常要求 Node 22+；包名和 onboarding 命令需动态核验 |
 | Hermes | 官方仓库 installer 或 Python 安装；当前适配器使用 `python -m pip install --upgrade hermes-agent` 作为可审阅候选 | Python 版本、脚本路径和 Windows 原生支持需发布前读取 README/pyproject |
-| Pi | `npm install --global @mariozechner/pi-coding-agent` | Node/npm，近期版本常要求 Node 20+；不要误装同名 `pi` 包 |
+| Pi | 先卸载旧包，再安装 `@earendil-works/pi-coding-agent` | Node/npm，当前包要求 Node 22.19+；旧包 `@mariozechner/pi-coding-agent` 已弃用 |
 
 ## 依赖与平台矩阵
 

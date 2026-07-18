@@ -1,5 +1,7 @@
 # OpenClaw、Hermes Agent、Pi Coding Agent 安装调研
 
+> Live metadata update (2026-07-18): npm now marks `@mariozechner/pi-coding-agent` deprecated and points to `@earendil-works/pi-coding-agent` (latest observed 0.80.10, Node >=22.19.0). The installer registry follows the new package and migrates the old global package.
+
 > 调研日期：2026-07-17
 >
 > 本次执行环境无法解析 `github.com` / `raw.githubusercontent.com`，因此不能在本次会话中实时抓取官方 README。下文优先采用已知的官方仓库、官网和官方包名；对容易随版本变化的 Node/Python 版本、脚本路径及 Windows 支持状态明确标注为“运行时查询”或“发布前复核”，不应把未核验值静态写死到安装器中。
@@ -537,4 +539,3 @@ home: /home/<user>
 4. 在 macOS arm64、Linux x64、Windows x64 原生、Windows + WSL2 四个环境运行 dry-run。
 5. 分别测试 clean install、已满足依赖、依赖版本过旧、PATH 冲突、无管理员权限、断网恢复、卸载保留数据。
 6. 对真实付费模型调用保持 opt-in；基础验证必须完全离线且无费用。
-

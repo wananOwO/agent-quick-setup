@@ -6,11 +6,24 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Refresh-ProcessPath {
+  $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+  $currentPath = [Environment]::GetEnvironmentVariable("Path", "Process")
+  $env:Path = @($machinePath, $userPath, $currentPath) -join ";"
+}
+
 function Find-WorkingPython {
   if ($env:AGENT_SETUP_PYTHON) {
     $candidateNames = @($env:AGENT_SETUP_PYTHON)
   } else {
     $candidateNames = @("py", "python", "python3")
+    $userPythonPattern = Join-Path $env:LOCALAPPDATA "Programs\Python\Python*\python.exe"
+    $candidateNames += @(Get-ChildItem -Path $userPythonPattern -File -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | ForEach-Object FullName)
+    if ($env:ProgramFiles) {
+      $systemPythonPattern = Join-Path $env:ProgramFiles "Python*\python.exe"
+      $candidateNames += @(Get-ChildItem -Path $systemPythonPattern -File -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | ForEach-Object FullName)
+    }
   }
 
   foreach ($candidateName in $candidateNames) {
@@ -31,6 +44,7 @@ function Find-WorkingPython {
   return $null
 }
 
+Refresh-ProcessPath
 $python = Find-WorkingPython
 if (-not $python) {
   if ($env:AGENT_SETUP_NO_BOOTSTRAP -eq "1") {
@@ -59,9 +73,7 @@ if (-not $python) {
     throw "winget could not install Python (exit code $LASTEXITCODE)."
   }
 
-  $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-  $env:Path = "$machinePath;$userPath"
+  Refresh-ProcessPath
   $python = Find-WorkingPython
   if (-not $python) {
     throw "Python was installed, but this terminal cannot find it yet. Open a new terminal and run the command again."

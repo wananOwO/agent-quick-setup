@@ -14,3 +14,6 @@
 - Added secure one-line bootstraps for PowerShell and POSIX shells, with temporary archive extraction and cleanup.
 - Published the public repository at https://github.com/wananOwO/agent-quick-setup and verified the Windows raw-script/archive path.
 - GitHub Actions run 29640074251 passed bootstrap, shell syntax, and Python 3.9/3.12 tests on Windows, Ubuntu, and macOS.
+- 2026-07-18: User report reproduced three design defects: `subprocess` uses a non-resolved `powershell.exe` shell, Python PATH is only refreshed immediately after installation, and errors are re-thrown at three layers.
+- Fixed Windows PowerShell command execution policy, PATH refresh before/after dependency and Agent installation, concise error handling, and Pi package migration to `@earendil-works/pi-coding-agent`.
+- Full native Windows Pi install completed successfully; `pi --version` reports 0.80.10 and npm confirms `@earendil-works/pi-coding-agent@0.80.10`.

@@ -28,9 +28,12 @@ try {
     } else {
         & (Join-Path $projectRoot "install.cmd")
         if ($LASTEXITCODE -ne 0) {
-            throw "Agent Quick Setup exited with code $LASTEXITCODE."
+            $global:LASTEXITCODE = $LASTEXITCODE
         }
     }
+} catch {
+    [Console]::Error.WriteLine("Agent Quick Setup failed: " + $_.Exception.Message)
+    $global:LASTEXITCODE = 1
 } finally {
     if (Test-Path -LiteralPath $tempRoot) {
         Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue

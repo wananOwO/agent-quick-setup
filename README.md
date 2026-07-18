@@ -79,7 +79,7 @@ detect -> plan -> confirm -> apply -> verify
 | OpenCode | `npm install --global opencode-ai` | Node.js / npm |
 | OpenClaw | `npm install --global openclaw@latest` | Node.js / npm；版本约束动态查询 |
 | Hermes Agent | Python 包或官方仓库安装器 | Python / pip / Git |
-| Pi | `npm install --global @mariozechner/pi-coding-agent` | Node.js / npm；版本约束动态查询 |
+| Pi | `npm uninstall --global @mariozechner/pi-coding-agent; npm install --global @earendil-works/pi-coding-agent` | Node.js 22.19+ / npm；旧包已弃用，版本约束动态查询 |
 
 OpenClaw、Hermes 的上游安装方式可能变化，发布前需按 `research_*.md` 的复核清单确认。
 
