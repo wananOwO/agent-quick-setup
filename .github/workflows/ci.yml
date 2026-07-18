@@ -36,3 +36,4 @@ jobs:
       - run: sh -n bootstrap.sh
       - run: sh -n install.sh
       - run: bash tests/test_bootstrap_tty.sh
+      - run: bash tests/linux_path_test.sh
