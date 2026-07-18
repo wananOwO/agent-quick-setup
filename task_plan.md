@@ -10,7 +10,7 @@
 - [completed] 阶段 2：确定架构、命令行交互与安全策略，形成开发设计
 - [completed] 阶段 3：实现跨平台 CLI、检测器、依赖安装器和 Agent 适配器
 - [completed] 阶段 4：编写测试、文档与示例，执行验证（静态检查完成；运行时测试因当前环境没有 Python 解释器而无法执行）
-- [in_progress] Phase 5: Fix the silent Windows bootstrap failure, add remote one-line installers, publish the repository, and verify both download paths.
+- [completed] Phase 5: Fix the silent Windows bootstrap failure, add remote one-line installers, publish the repository, and verify both download paths.
 
 ## 全局约束
 

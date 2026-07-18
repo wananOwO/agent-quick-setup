@@ -12,8 +12,8 @@ jobs:
         python-version: ["3.9", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m unittest discover -s tests -v
@@ -22,7 +22,7 @@ jobs:
   windows-bootstrap:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - shell: powershell
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\windows_bootstrap_test.ps1
@@ -32,6 +32,6 @@ jobs:
   shell-syntax:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: sh -n bootstrap.sh
       - run: sh -n install.sh

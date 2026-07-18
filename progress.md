@@ -10,3 +10,7 @@
 - 尝试运行 `python -m unittest discover -s tests -v`；当前执行环境只有 Microsoft Store Python alias，没有可用解释器，因此未能执行运行时测试。已完成文件级语法风险扫描和 dry-run 逻辑审阅。
 - 2026-07-18: Reproduced `install.cmd` returning exit code 9009 with no output. Root cause: the WindowsApps Python app-execution alias is discoverable but not usable.
 - GitHub CLI is authenticated as `wananOwO`; `wananOwO/agent-quick-setup` is currently available for creation.
+- Fixed Windows Store Python alias detection; missing Python now triggers a visible error or an optional winget bootstrap.
+- Added secure one-line bootstraps for PowerShell and POSIX shells, with temporary archive extraction and cleanup.
+- Published the public repository at https://github.com/wananOwO/agent-quick-setup and verified the Windows raw-script/archive path.
+- GitHub Actions run 29640074251 passed bootstrap, shell syntax, and Python 3.9/3.12 tests on Windows, Ubuntu, and macOS.
