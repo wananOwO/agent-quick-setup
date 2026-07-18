@@ -31,6 +31,30 @@ class CoreTests(unittest.TestCase):
         keys = {agent.key for agent in get_agents()}
         self.assertTrue({"claude-code", "codex", "opencode", "openclaw", "hermes", "pi"} <= keys)
 
+    def test_every_agent_declares_user_path_strategy(self):
+        for agent in get_agents():
+            self.assertTrue(agent.user_bin_paths, agent.key)
+
+    @patch("agent_setup.commands.subprocess.run")
+    def test_npm_global_bin_path_is_resolved_for_node_agents(self, run):
+        run.return_value.returncode = 0
+        run.return_value.stdout = "/home/test/.npm-global\n"
+        runner = CommandRunner(Runtime("linux", "bash"))
+
+        self.assertEqual(runner.resolve_path_entry("$NPM_GLOBAL_BIN"), "/home/test/.npm-global/bin")
+
+    @patch("agent_setup.commands.shutil.which", return_value=r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe")
+    @patch("agent_setup.commands.subprocess.run")
+    def test_windows_npm_global_bin_uses_powershell_capture(self, run, _which):
+        run.return_value.returncode = 0
+        run.return_value.stdout = r"C:\Users\Test\AppData\Roaming\npm" + "\n"
+        runner = CommandRunner(Runtime("windows", "powershell"))
+
+        self.assertEqual(runner.resolve_path_entry("$NPM_GLOBAL_BIN"), r"C:\Users\Test\AppData\Roaming\npm")
+        args = run.call_args.args[0]
+        self.assertIn("-Command", args)
+        self.assertIn("npm prefix --global", args)
+
     def test_pi_uses_current_upstream_package(self):
         agent = next(item for item in get_agents() if item.key == "pi")
         self.assertEqual(agent.package, "@earendil-works/pi-coding-agent")
