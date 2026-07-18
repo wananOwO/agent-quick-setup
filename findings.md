@@ -36,3 +36,4 @@
 - A child installer process cannot update its parent's environment, so the installer updates its own PATH and documents reopening the terminal.
 - WSL verification must use an interactive shell (`bash -ic`/`zsh -ic`); non-interactive `bash -lc` may return before loading `.bashrc`.
 - macOS Bash login shells conventionally use `.bash_profile`; WSL shell detection now supports Bash and Zsh with a Bash fallback.
+- Native Ubuntu flow uses the same POSIX persistence path as macOS/Linux; an integration test now verifies `.bashrc` loading in a real interactive Bash subprocess rather than only mocking `CommandRunner`.
