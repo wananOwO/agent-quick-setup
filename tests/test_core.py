@@ -260,7 +260,7 @@ class CoreTests(unittest.TestCase):
             def run(self, command, check=False):
                 return 0
 
-        agent = replace(next(item for item in get_agents() if item.key == "pi"), package=None)
+        agent = replace(next(item for item in get_agents() if item.key == "pi"), package=None, user_bin_paths=[])
         output = StringIO()
         with redirect_stdout(output):
             result = install_agent(agent, MissingAgentRunner(), input_fn=lambda _prompt: "y")
